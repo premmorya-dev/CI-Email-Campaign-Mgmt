@@ -1,7 +1,8 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Email extends CI_Controller {
+class Email extends CI_Controller
+{
 
     /**
      * Index Page for this controller.
@@ -19,17 +20,19 @@ class Email extends CI_Controller {
      * @see https://codeigniter.com/userguide3/general/urls.html
      */
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->load->model('email_model', 'emails');
 
     }
-    public function sendEmail() {
+    public function sendEmail()
+    {
 
 
         $this->load->library('email');
-        $this->email->clear(); 
-        $config['protocol'] = 'smtp'; 
+        $this->email->clear();
+        $config['protocol'] = 'mail';
         $config['smtp_host'] = 'mail.xyzpro.in';
         $config['smtp_port'] = '25';
         $config['smtp_user'] = 'user1@xyzpro.in';
@@ -37,8 +40,8 @@ class Email extends CI_Controller {
         $config['charset'] = 'utf-8';
         $config['mailtype'] = 'html';
         $config['newline'] = "\r\n";
-        
-     
+
+
 
         $sender_mail = 'user1@xyzpro.in';
         $sender_name = 'Prem Morya';
@@ -66,45 +69,46 @@ class Email extends CI_Controller {
         $this->email->from($sender_mail, $sender_name); // Set the sender's email and name          
         $this->email->subject($subject);
 
-      
+
         $campaign_id = 1;
 
         $email_list_id = 1;
         $total_email = $this->emails->getTotalEmail($email_list_id);
 
-      //  $chunkSize = 100; // Process 1000 orders at a time
-      //  $totalOrders = $total_email; // Total number of orders
-        $totalOrders = 1; 
+        $chunkSize = 100; // Process 1000 orders at a time
+        $totalOrders = $total_email; // Total number of orders
+        // $totalOrders = 1; 
+        // $chunkSize = 1; 
+        echo "\n Time: " . date('Y-m-d H:i:s');
+        for ($offset = 0; $offset < $totalOrders; $offset += $chunkSize) {
 
-        $chunkSize = 1; 
-        for($offset = 0; $offset < $totalOrders; $offset += $chunkSize) {
-            $list = $this->db->query("SELECT * FROM xyzpro_email_list_".$email_list_id." LIMIT $chunkSize OFFSET $offset")->result_array();
+            $list = $this->db->query("SELECT * FROM xyzpro_email_list_" . $email_list_id . " LIMIT $chunkSize OFFSET $offset")->result_array();
 
 
-            if(!empty($list)) {
-                foreach($list as $email) {
-                  //  $this->email->clear(); 
+            if (!empty($list)) {
+                foreach ($list as $email) {                    
                     $this->email->to($email['email']); // Set recipient's email     
-
-                    $email_data['receiver_mail'] = $email['email'];                
+                    $email_data['receiver_mail'] = $email['email'];
                     $sending_id = $this->emails->addEmail($email_data);
-                   
-                    $content = '<img src="http://xyzpro.in/Email/openTracking/'.$sending_id.'" alt="" width="1" height="1" style="display:none;">';
-            
-                    $content .= 'This is the content of the email.2 his issdf thesdbgtb content ofdf the emai';
-            
+
+                    $content = '<img src="http://xyzpro.in/Email/openTracking/' . $sending_id . '" alt="" width="1" height="1" style="display:none;">';
+
+                    $content .= 'This is the content of the email.';
+
                     $this->email->message($content);
 
-                   
-                    if($this->email->send(false)) {
-                      //  $status = $this->emails->delivered($sending_id); 
-                          echo "\n Email Sent <br>";
+
+                    if ($this->email->send(false)) {
+                        $status = $this->emails->delivered($sending_id);
+                        echo "\n Email Sent <br>";
                     } else {
-                          echo $this->email->print_debugger(); // Display any email sending errors
-                    }  
+                        echo $this->email->print_debugger(); // Display any email sending errors
+                    }
                 }
             }
+
         }
+        echo "\n Time: " . date('Y-m-d H:i:s');
 
 
 
@@ -112,7 +116,8 @@ class Email extends CI_Controller {
     }
 
 
-    public function openTracking($id) {
+    public function openTracking($id)
+    {
         $status = $this->emails->updateClick($id);
 
     }
